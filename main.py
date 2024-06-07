@@ -30,7 +30,6 @@ def log_message(user_id, message_text):
     with open(file_path, 'a', encoding='utf-8') as file:
         file.write(f"{now}: {message_text}\n")
 
-
 def save_image(user_id, image, caption):
     # Создание папки для пользователя, если она еще не существует
     user_dir = os.path.join('chats', str(user_id))
@@ -63,6 +62,7 @@ def send_welcome(message):
 
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message):
+    start_time = datetime.now()  # Время начала обработки
     log_message(message.from_user.id, "<Фото>")
     # Отправка сообщения о начале обработки
     processing_message = bot.reply_to(message, "Подождите, картинка обрабатывается...")
@@ -102,6 +102,12 @@ def handle_photo(message):
         log_message(message.from_user.id, error_response)
         # Редактирование сообщения об ошибке
         bot.edit_message_text(chat_id=processing_message.chat.id, message_id=processing_message.message_id, text=error_response)
+    finally:
+        now = datetime.now()
+        date_time = now.strftime("%Y-%m-%d/%H-%M-%S")
+        # Вывод в консоль информации об обработанном сообщении и времени обработки
+        end_time = datetime.now()  # Время окончания обработки
+        print(f"Сообщение обработано. Время обработки: {date_time}")
 
 # Запуск бота
 bot.polling()
