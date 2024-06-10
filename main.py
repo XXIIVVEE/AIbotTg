@@ -5,6 +5,7 @@ import telebot
 from PIL import Image
 from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input, decode_predictions
 from tensorflow.keras.preprocessing.image import img_to_array
+from deep_translator import GoogleTranslator
 
 # Токен вашего бота (убедитесь, что он хранится в безопасности)
 bot_token = '7327632875:AAFV3_wPx1qEa7YcF-TXpuiL0fmE68uCgxM'
@@ -12,6 +13,9 @@ bot = telebot.TeleBot(bot_token)
 
 # Загрузка модели MobileNetV2
 model = MobileNetV2(weights='imagenet')
+
+# Инициализация переводчика
+translator = GoogleTranslator(source='en', target='ru')
 
 def ensure_dir(directory):
     if not os.path.exists(directory):
@@ -58,6 +62,9 @@ def predict_image(image_array):
     predictions = decode_predictions(predictions, top=3)[0]
     return predictions
 
+def translate_class_name(class_name):
+    return translator.translate(class_name)
+
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     log_message(message.from_user.id, message.from_user.username, message.text)
@@ -91,7 +98,8 @@ def handle_photo(message):
         if filtered_predictions:
             highest_prediction = max(filtered_predictions, key=lambda item: item[2])
             class_id, title, score = highest_prediction
-            response = f"Название: {title}, Вероятность: {int(score * 100)}%"
+            translated_title = translate_class_name(title)
+            response = f"Название: {translated_title}, Вероятность: {int(score * 100)}%"
             log_message(message.from_user.id, message.from_user.username, response)
             # Редактирование сообщения с результатами
             bot.edit_message_text(chat_id=processing_message.chat.id, message_id=processing_message.message_id, text=response)
@@ -107,7 +115,7 @@ def handle_photo(message):
         bot.edit_message_text(chat_id=processing_message.chat.id, message_id=processing_message.message_id, text=error_response)
     finally:
         now = datetime.now()
-        date_time = now.strftime("%Y-%m-%d/%H-%M-%S")
+        date_time = now.strftime("%Y-%m-%d/%H-%М-%S")
         # Вывод в консоль информации об обработанном сообщении и времени обработки
         end_time = datetime.now()  # Время окончания обработки
         print(f"Сообщение обработано. Время обработки: {date_time}")
