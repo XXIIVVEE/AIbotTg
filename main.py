@@ -73,9 +73,8 @@ def send_welcome(message):
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message):
     start_time = datetime.now()  # Время начала обработки
-    log_message(message.from_user.id, message.from_user.username, "<Фото>")
     # Отправка сообщения о начале обработки
-    processing_message = bot.reply_to(message, "Подождите, картинка обрабатывается...")
+    processing_message = bot.reply_to(message, "Подождите, изображение обрабатывается...")
     try:
         # Получение изображения от пользователя
         file_info = bot.get_file(message.photo[-1].file_id)
@@ -87,7 +86,7 @@ def handle_photo(message):
         image_array = prepare_image(image)
 
         # Сохранение оригинального изображения
-        save_image(message.from_user.id, message.from_user.username, image, "original")
+        save_image(message.from_user.id, message.from_user.username, image, "Photo",)
 
         # Предсказание и фильтрация результатов
         predictions = predict_image(image_array)
@@ -100,7 +99,7 @@ def handle_photo(message):
             class_id, title, score = highest_prediction
             translated_title = translate_class_name(title)
             response = f"Название: {translated_title}, Вероятность: {int(score * 100)}%"
-            log_message(message.from_user.id, message.from_user.username, response)
+            log_message(message.from_user.id, message.from_user.username, f"'Фото' Распознанный объект: {translated_title}")
             # Редактирование сообщения с результатами
             bot.edit_message_text(chat_id=processing_message.chat.id, message_id=processing_message.message_id, text=response)
         else:
@@ -115,7 +114,7 @@ def handle_photo(message):
         bot.edit_message_text(chat_id=processing_message.chat.id, message_id=processing_message.message_id, text=error_response)
     finally:
         now = datetime.now()
-        date_time = now.strftime("%Y-%m-%d/%H-%М-%S")
+        date_time = now.strftime("%Y-%m-%d/%H-%M-%S")
         # Вывод в консоль информации об обработанном сообщении и времени обработки
         end_time = datetime.now()  # Время окончания обработки
         print(f"Сообщение обработано. Время обработки: {date_time}")
